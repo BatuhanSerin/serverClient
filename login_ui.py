@@ -83,13 +83,13 @@ class Window(QtWidgets.QWidget):
 class LoggedIn(QWidget):
 
     def __init__(self):
-
+        self.flag=0
         super().__init__()
 
         self.init_ui()
         #self.connectServer()
         self.connectClient("Client Connected !!!")
-
+        
     def connectServer(self) -> None:
         host = socket.gethostbyname(socket.gethostname())
         port = 1024
@@ -105,21 +105,41 @@ class LoggedIn(QWidget):
             sock.sendto(msgServer, addr)
 
     def connectClient(self, msg) -> None:
-        host = socket.gethostbyname(socket.gethostname())
+        
+        host = "172.16.60.205"
+        #socket.gethostbyname(socket.gethostname())
         port = 1024
         format = 'utf-8'
 
-        client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
-        t1 = threading.Timer(2,self.connectClient,args=(msg,))
-        t1.daemon = True
-        t1.start()
+        if self.flag == 0:
+            client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        
+            t1 = threading.Timer(2,self.connectClient,args=(msg,))
+            t1.daemon = True
+            t1.start()
+            client_sock.sendto(msg.encode(format), (host, port))
+        
+            data, addr = client_sock.recvfrom(2048)
+            print("From Server: {}".format(str(data)))
+            client_sock.close()
 
+        self.flag=0
+        
+    def connectClient_2(self, msg) -> None:
+        host = "172.16.60.205"
+        #socket.gethostbyname(socket.gethostname())
+        port = 1024
+        format = 'utf-8'
+
+    
+        client_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
         client_sock.sendto(msg.encode(format), (host, port))
+    
         data, addr = client_sock.recvfrom(2048)
         print("From Server: {}".format(str(data)))
-        client_sock.close()
-
+        self.connectClient("")
         
     def init_ui(self):
 
@@ -160,7 +180,9 @@ class LoggedIn(QWidget):
             self.received_text.clear()
         else:
             print("Server'a {} gönderildi.".format(self.sendingText.toPlainText()))
-            self.connectClient(self.sendingText.toPlainText())
+            self.connectClient_2(self.sendingText.toPlainText())
+            self.flag=1
+
 
 class Menu(QMainWindow):
     
